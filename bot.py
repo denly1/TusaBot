@@ -1377,7 +1377,7 @@ async def finalize_previous_week_and_reengage(context: ContextTypes.DEFAULT_TYPE
 
 
 async def do_weekly_broadcast(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Еженедельная рассылка афиши всем пользователям в Telegram и VK"""
+    """Рассылка афиши всем пользователям бота в личные сообщения (БЕЗ публикации в VK)"""
     known_users = get_known_users(context)
     if not known_users:
         logger.info("No users to broadcast to")
@@ -1391,7 +1391,7 @@ async def do_weekly_broadcast(context: ContextTypes.DEFAULT_TYPE) -> None:
     
     latest_poster = all_posters[-1]
     
-    # Рассылка в Telegram
+    # Рассылка в Telegram (только в личные сообщения пользователям)
     success_count = 0
     for user_id in known_users:
         try:
@@ -1400,24 +1400,15 @@ async def do_weekly_broadcast(context: ContextTypes.DEFAULT_TYPE) -> None:
         except Exception as e:
             logger.warning("Failed to send poster to user %s: %s", user_id, e)
     
-    # Рассылка в VK
-    vk_success = False
-    if VK_ENABLED and VK_TOKEN:
-        try:
-            vk_success = await broadcast_to_vk(latest_poster)
-        except Exception as e:
-            logger.warning("Failed to broadcast to VK: %s", e)
-    
-    logger.info("Weekly broadcast completed: %d/%d users (Telegram), VK: %s", 
-                success_count, len(known_users), "✅" if vk_success else "❌")
+    logger.info("Broadcast completed: %d/%d users received the poster", 
+                success_count, len(known_users))
     
     # Отправляем админу отчет
     admin_id = ADMIN_USER_ID
     if admin_id:
         try:
             report = f"📊 Рассылка завершена:\n"
-            report += f"Telegram: {success_count}/{len(known_users)} пользователей\n"
-            report += f"VK: {'✅ Опубликовано' if vk_success else '❌ Ошибка'}"
+            report += f"✅ Отправлено: {success_count}/{len(known_users)} пользователей"
             await context.bot.send_message(admin_id, report)
         except Exception as e:
             logger.warning("Failed to send broadcast report to admin: %s", e)
