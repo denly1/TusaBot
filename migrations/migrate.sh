@@ -12,7 +12,7 @@ fi
 DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-largent}"
-DB_USER="${DB_USER:-postgres}"
+DB_USER="${DB_USER:-tusabot_user}"
 
 # Директория с миграциями
 MIGRATIONS_DIR="/opt/tusabot/migrations"
