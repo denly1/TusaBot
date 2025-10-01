@@ -1,0 +1,30 @@
+name: Deploy TusaBot to Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Ubuntu Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔔 Deployment started
+        run: echo "Starting deployment to production server..."
+      
+      - name: 🚀 Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /opt/tusabot
+            bash deploy.sh
+      
+      - name: ✅ Deployment complete
+        run: echo "Deployment completed successfully!"
