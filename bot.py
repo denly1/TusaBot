@@ -1590,15 +1590,23 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                                 target_user_id = user_in_db.get("tg_id")
                                 logger.info(f"Found user by username @{username}: ID={target_user_id}")
                             else:
+                                logger.info(f"User @{username} not found in DB, trying get_chat...")
                                 # Если не нашли в БД, пробуем через get_chat (для публичных профилей)
                                 try:
                                     target_chat = await context.bot.get_chat(f"@{username}")
                                     target_user_id = target_chat.id
                                     logger.info(f"Found user by get_chat @{username}: ID={target_user_id}")
-                                except Exception:
-                                    pass
+                                except Exception as e:
+                                    logger.warning(f"Failed to get_chat for @{username}: {e}")
                         except Exception as e:
                             logger.error(f"Error searching user by username in DB: {e}")
+                            # Пробуем get_chat если БД недоступна
+                            try:
+                                target_chat = await context.bot.get_chat(f"@{username}")
+                                target_user_id = target_chat.id
+                                logger.info(f"Found user by get_chat @{username}: ID={target_user_id}")
+                            except Exception as e2:
+                                logger.warning(f"Failed to get_chat for @{username}: {e2}")
                     
                     if not target_user_id:
                         # Проверяем режим
