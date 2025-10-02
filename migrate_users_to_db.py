@@ -7,12 +7,24 @@ import pickle
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from db import create_pool, upsert_user
+from db import create_pool, upsert_user, DB_HOST, DB_PORT, DB_NAME, DB_USER
 
 # Загружаем переменные окружения из .env
 load_dotenv()
 
 async def migrate_users():
+    # Проверяем переменные окружения
+    print("🔍 Проверка конфигурации БД...")
+    print(f"   DB_HOST: {DB_HOST}")
+    print(f"   DB_PORT: {DB_PORT}")
+    print(f"   DB_NAME: {DB_NAME}")
+    print(f"   DB_USER: {DB_USER}")
+    
+    if DB_USER == "postgres":
+        print("❌ ОШИБКА: DB_USER=postgres (должен быть tusabot_user)")
+        print("   Проверьте файл .env!")
+        return
+    
     # Путь к persistence файлу
     persistence_file = Path("/opt/tusabot/data/bot_data.pkl")
     
@@ -21,7 +33,7 @@ async def migrate_users():
         return
     
     # Загружаем данные из persistence
-    print("📂 Загружаем данные из persistence файла...")
+    print("\n📂 Загружаем данные из persistence файла...")
     with open(persistence_file, "rb") as f:
         data = pickle.load(f)
     
@@ -29,8 +41,13 @@ async def migrate_users():
     print(f"✅ Найдено {len(user_data)} пользователей в persistence")
     
     # Подключаемся к БД
-    print("🔌 Подключаемся к БД...")
-    pool = await create_pool()
+    print("\n🔌 Подключаемся к БД...")
+    try:
+        pool = await create_pool()
+        print("✅ Подключение к БД успешно!")
+    except Exception as e:
+        print(f"❌ Ошибка подключения к БД: {e}")
+        return
     
     # Переносим каждого пользователя
     migrated = 0

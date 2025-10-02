@@ -1,12 +1,16 @@
 import os
 import asyncpg
 from typing import Optional, Any, Dict
+from dotenv import load_dotenv
 
-# Environment with sane defaults based on your provided DB creds
+# Загружаем переменные окружения из .env файла
+load_dotenv()
+
+# Environment variables for database connection
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "largent")
-DB_USER = os.getenv("DB_USER", "postgres")
+DB_USER = os.getenv("DB_USER", "tusabot_user")  # Исправлен дефолт
 DB_PASSWORD = os.getenv("DB_PASSWORD", "1")
 
 
