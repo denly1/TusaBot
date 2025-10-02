@@ -4,8 +4,13 @@
 """
 import asyncio
 import pickle
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 from db import create_pool, upsert_user
+
+# Загружаем переменные окружения из .env
+load_dotenv()
 
 async def migrate_users():
     # Путь к persistence файлу
