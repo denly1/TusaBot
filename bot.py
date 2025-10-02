@@ -85,6 +85,8 @@ ADMIN_USER_ID_2_STR = _get_env("ADMIN_USER_ID_2", "")
 ADMIN_USER_ID_2 = int(ADMIN_USER_ID_2_STR) if ADMIN_USER_ID_2_STR.isdigit() else 0
 ADMIN_USER_ID_3_STR = _get_env("ADMIN_USER_ID_3", "")
 ADMIN_USER_ID_3 = int(ADMIN_USER_ID_3_STR) if ADMIN_USER_ID_3_STR.isdigit() else 0
+ADMIN_USER_ID_4_STR = _get_env("ADMIN_USER_ID_4", "")
+ADMIN_USER_ID_4 = int(ADMIN_USER_ID_4_STR) if ADMIN_USER_ID_4_STR.isdigit() else 0
 CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME", "@largentmsk")
 CHANNEL_USERNAME_2 = os.getenv("CHANNEL_USERNAME_2", "@idnrecords")
 
@@ -266,6 +268,8 @@ def get_admins(context: ContextTypes.DEFAULT_TYPE) -> Set[int]:
         bd["admins"].add(ADMIN_USER_ID_2)
     if ADMIN_USER_ID_3:
         bd["admins"].add(ADMIN_USER_ID_3)
+    if ADMIN_USER_ID_4:
+        bd["admins"].add(ADMIN_USER_ID_4)
     
     return bd["admins"]
 
