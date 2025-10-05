@@ -274,6 +274,47 @@ def get_admins(context: ContextTypes.DEFAULT_TYPE) -> Set[int]:
     return bd["admins"]
 
 
+async def auto_update_username(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Автоматически обновляет username пользователя в БД если он изменился.
+    Функция безопасна - если что-то пойдет не так, основная логика продолжит работать.
+    """
+    try:
+        user = update.effective_user
+        if not user or not user.id:
+            return
+        
+        # Получаем текущий username из Telegram
+        current_username = user.username
+        
+        # Проверяем есть ли pool
+        pool = get_db_pool(context)
+        if not pool:
+            return
+        
+        # Получаем данные пользователя из БД
+        user_in_db = await get_user(pool, user.id)
+        if not user_in_db:
+            return  # Пользователь не зарегистрирован - username обновится при регистрации
+        
+        # Проверяем изменился ли username
+        db_username = user_in_db.get("username")
+        if db_username == current_username:
+            return  # Username не изменился
+        
+        # Обновляем username в БД
+        await upsert_user(
+            pool=pool,
+            tg_id=user.id,
+            username=current_username
+        )
+        logger.info(f"Auto-updated username for user {user.id}: {db_username} -> {current_username}")
+        
+    except Exception as e:
+        # Логируем ошибку, но не прерываем выполнение
+        logger.warning(f"Failed to auto-update username for user {update.effective_user.id if update.effective_user else 'unknown'}: {e}")
+
+
 # ----------------------
 # VK helpers
 # ----------------------
@@ -452,6 +493,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not user:
         return
     
+    # Автообновление username в фоне
+    await auto_update_username(update, context)
+    
     get_known_users(context).add(user.id)
     
     # Создаем минимальную запись в БД если её нет
@@ -545,6 +589,9 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     if not user:
         return
+    
+    # Автообновление username в фоне
+    await auto_update_username(update, context)
 
     # Добавляем пользователя в известные
     get_known_users(context).add(user.id)
@@ -707,6 +754,9 @@ async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.answer()
         user = query.from_user
         data = query.data
+        
+        # Автообновление username в фоне
+        await auto_update_username(update, context)
         
         logger.info("Button pressed by user %s: %s", user.id, data)
 
@@ -1558,6 +1608,9 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         text = update.message.text
         user = update.effective_user
         user_data = context.user_data
+        
+        # Автообновление username в фоне
+        await auto_update_username(update, context)
         
         # ПРИОРИТЕТ 1: Обработка регистрации (должна быть ПЕРВОЙ!)
         reg_step = user_data.get("registration_step")
