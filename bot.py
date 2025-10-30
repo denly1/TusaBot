@@ -2021,7 +2021,7 @@ def build_app() -> Application:
     app.post_init = _on_startup
     app.post_shutdown = _on_shutdown
 
-    schedule_weekly(app)
+    # schedule_weekly(app)  # ОТКЛЮЧЕНО: автоматическая рассылка убрана
     # Notify admin shortly after start
     app.job_queue.run_once(_notify_admin_start, when=1)
     return app
